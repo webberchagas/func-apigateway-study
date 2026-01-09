@@ -26,12 +26,4 @@ public class RatingRequest {
         return email;
     }
 
-    @Override
-    public String toString() {
-        return "RatingRequest{" +
-                "rating=" + rating +
-                ", description='" + description + '\'' +
-                ", email='" + email + '\'' +
-                '}';
-    }
 }

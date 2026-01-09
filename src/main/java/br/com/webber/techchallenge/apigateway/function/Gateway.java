@@ -38,20 +38,18 @@ public class Gateway {
 
         context.getLogger().info("Java HTTP trigger processed a request.");
         try {
+            context.getLogger().info("Validando body da requisição.");
             String body = validateBody(request);
             RatingRequest ratingDto = parseRequestBody(body);
 
-
-            String urlFuncaoB = System.getenv("URL_FUNC_PRIVATE"); // Ex: https://.../api/ratings
+            String urlFuncaoB = System.getenv("URL_FUNC_PRIVATE");
             String secretToken = System.getenv("INTERNAL_SECRET_TOKEN");
 
-            // 4. Preparar a chamada HTTP para a Função B
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.set("x-internal-secret", secretToken); // Header de segurança manual
+            headers.set("x-internal-secret", secretToken);
 
             HttpEntity<RatingRequest> entity = new HttpEntity<>(ratingDto, headers);
-            context.getLogger().info("entity " + entity);
 
             ResponseEntity<String> responseB = restTemplate.exchange(
                     urlFuncaoB,
@@ -59,20 +57,21 @@ public class Gateway {
                     entity,
                     String.class
             );
-
-            // 6. Retornar o resultado da Função B para o cliente
+            context.getLogger().info("Response from Function B: " + responseB.getBody());
             return request.createResponseBuilder(HttpStatus.valueOf(responseB.getStatusCodeValue()))
                     .header("Content-Type", "application/json")
                     .body(responseB.getBody())
                     .build();
 
         } catch (IllegalArgumentException e) {
-            return request.createResponseBuilder(HttpStatus.BAD_REQUEST).body(e.getMessage()).build();
+            return request.createResponseBuilder(HttpStatus.BAD_REQUEST)
+                    .body(e.getMessage())
+                    .build();
         } catch (Exception e) {
             context.getLogger().severe("Erro no Gateway: " + e.getMessage());
 
             return request.createResponseBuilder(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("Erro ao processar integração interna.")
+                .body("Erro ao processar integração interna, veja o log." )
                 .build();
         }
     }
